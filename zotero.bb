@@ -1,4 +1,6 @@
 #!/usr/bin/env bb
+(ns zotero)
+
 (require '[babashka.deps :as deps])
 (deps/add-deps '{:deps {org.babashka/spec.alpha {:git/url "https://github.com/babashka/spec.alpha"
                                                  :git/sha "1d9df099be4fbfd30b9b903642ad376373c16298"}}})
@@ -6,68 +8,72 @@
          '[babashka.curl :as curl]
          '[cheshire.core :as json])
 
+(defn abort-with-error [msg]
+  (binding [*out* *err*]
+    (println "Error:" msg))
+  (System/exit 1))
+
 (def api-key (System/getenv "ZOTERO_API_KEY"))
+(when (nil? api-key) (abort-with-error "ZOTERO_API_KEY not defined"))
+
 (def user-id (System/getenv "ZOTERO_USER_ID"))
-
-(s/def ::collection (s/keys :req [::key ::meta]))
-(s/def ::key string?)
-(s/def ::meta (s/keys :req [::numItems]))
-(s/def ::numItems int?)
+(when (nil? user-id) (abort-with-error "ZOTERO_USER_ID not defined"))
 
 
-(do
+(def headers {"Zotero-API-Version", 3
+              "Zotero-API-Key", api-key})
+(def base-url "https://api.zotero.org")
+
+(s/def :zotero/collection (s/keys :req [:zotero/key :zotero/meta]))
+(s/def :zotero/key string?)
+(s/def :zotero/meta (s/keys :req [:zotero/numItems]))
+(s/def :zotero/numItems int?)
+
+
   (defn collection-count
     "number of items in a collection"
-    [collection]
-    (let [base-url "https://api.zotero.org"
-          headers {"Zotero-API-Version", 3
-                   "Zotero-API-Key", api-key}
-          url (str base-url "/users/" user-id "/collections")
+    [collection-name]
+    (let [url (str base-url "/users/" user-id "/collections")
           name #(get-in % [:data :name])
           colls (->
                  (curl/get url {:headers headers})
                  :body
-                 (json/parse-string true))]
-      (->
-       (filter #(= collection (name %)) colls)
-       first
-       :meta
-       :numItems)))
+                 (json/parse-string true))
+          coll
+          (->
+           (filter #(= collection-name (name %)) colls)
+           first)]
+      {:key (:key coll)
+       :count (get-in coll [:meta :numItems])}))
 
-  (collection-count "To read"))
-
-
-
-
-  (defn call-zotero [path, query-params]
-    (let  [base-url "https://api.zotero.org"
-           headers {"Zotero-API-Version", 3
-                    "Zotero-API-Key", api-key}
-           url (str base-url path)]
-      (->
-       (curl/get url {:headers headers, :query-params query-params})
-       :body
-       (json/parse-string true))))
-
-(defn papers-path [user-id, collection-id]
-  (str "/users/" user-id "/collections/" collection-id "/items"))
-
-;; get the list of papers
-
-;; We want to return a lazy sequence. We should be able to recur, terminating when there aren't any more things left to call
+(s/def :zotero/collection-count (s/keys :req [:zotero/key :zotero/count]))
+(s/def :zotero/key string?)
+(s/def :zotero/count int?)
 
 
-(defn get-papers
-  ([user-id, collection-id]
-   (get-papers user-id collection-id 0))
+(collection-count "To read")
 
-  ([user-id, collection-id, start]
-   (let [path (str "/users/" user-id "/collections/" collection-id "/items")]
-     (call-zotero path [[:limit 100, :start start]]))))
+(defn get-paper [coll-key ind]
+  (let [path (str "/users/" user-id "/collections/" coll-key "/items")
+        url (str base-url path)]
+    (->
+     (curl/get url {:headers headers, :query-params {"start" ind, "limit" 1}})
+     :body
+     (json/parse-string true)
+     first
+     :data
+     :title)))
 
+(s/def ::paper (s/keys :req [::data]))
+(s/def ::data (s/keys :req [:title]))
 
 (defn main
   []
-  (println "Hello, world!"))
+(let [coll-count (collection-count "To read")
+      coll-key (:key coll-count)
+      ind (rand-int (:count coll-count))]
+  (get-paper coll-key ind)))
+
+
 
 (when (= *file* (System/getProperty "babashka.file")) (main))
