@@ -9,13 +9,15 @@
   (System/exit 1))
 
 (def API-KEY (System/getenv "ZOTERO_API_KEY"))
-(when (nil? API-KEY) (abort-with-error "ZOTERO_API_KEY not defined"))
+;(when (nil? API-KEY) (abort-with-error "environment variable ZOTERO_API_KEY not defined"))
 
 (def USER-ID (System/getenv "ZOTERO_USER_ID"))
-(when (nil? USER-ID) (abort-with-error "ZOTERO_USER_ID not defined"))
+;(when (nil? USER-ID) (abort-with-error "environment variable ZOTERO_USER_ID not defined"))
 
 (defn zotero-get
   "make a get request against the zotero api, and return the response body as a clojure map"
+  ([path]
+   (zotero-get path {}))
   ([path query-params]
    (let [base-url "https://api.zotero.org"
          headers {"Zotero-API-Version", 3
@@ -24,18 +26,31 @@
          (str path)
          (curl/get {:headers headers, :query-params query-params})
          :body
-         (json/parse-string true))))
-  ([path] (zotero-get path {})))
+         (json/parse-string true)))))
+
+(defn coll->count
+  "given a collection, return a map with its key and count"
+  [coll]
+  {:key (:key coll)
+   :count (get-in coll [:meta :numItems])})
+
+(defn coll-name
+  [coll]
+  (get-in coll [:data :name]))
+
+(defn colls-path
+  [id]
+  (str "/users/" id "/collections"))
 
 (defn collection-count
   "number of items in a collection"
   [collection-name]
-  (let [path (str "/users/" USER-ID "/collections")
-        name #(get-in % [:data :name])
-        colls (zotero-get path)
-        coll (->> colls (filter #(= collection-name (name %))) first)]
-    {:key (:key coll)
-     :count (get-in coll [:meta :numItems])}))
+  (->> USER-ID
+       colls-path
+       zotero-get
+       (filter #(= collection-name (coll-name %)))
+       first
+       coll->count))
 
 (defn items-path [coll-key]
   (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
@@ -49,8 +64,8 @@
       first
       :data))
 
-
 (defn creator->author
+  "take a map that "
   [creator]
   (str (:firstName creator) " " (:lastName creator)))
 
