@@ -1,7 +1,7 @@
 #!/usr/bin/env bb
 (require '[babashka.curl :as curl]
          '[cheshire.core :as json]
-         '[clojure.pprint :as pprint])
+         '[clj-yaml.core :as yaml])
 
 (defn abort-with-error [msg]
   (binding [*out* *err*]
@@ -38,7 +38,7 @@
      :count (get-in coll [:meta :numItems])}))
 
 (defn items-path [coll-key]
-  (str "/users/" USER-ID "/collections/" coll-key "/items"))
+  (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
 
 (defn get-paper [ind coll-key]
     (-> coll-key
@@ -67,6 +67,7 @@
         (get-paper coll-key)
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
-        pprint/pprint)))
+        yaml/generate-string
+        print)))
 
 (when (= *file* (System/getProperty "babashka.file")) (main))
