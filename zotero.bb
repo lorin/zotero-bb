@@ -23,10 +23,10 @@
               "Zotero-API-Key", api-key})
 (def base-url "https://api.zotero.org")
 
-(s/def :zotero/collection (s/keys :req [:zotero/key :zotero/meta]))
-(s/def :zotero/key string?)
-(s/def :zotero/meta (s/keys :req [:zotero/numItems]))
-(s/def :zotero/numItems int?)
+(s/def ::collection (s/keys :req [::key ::meta]))
+(s/def ::key string?)
+(s/def ::meta (s/keys :req [::numItems]))
+(s/def ::numItems int?)
 
 
   (defn collection-count
@@ -45,14 +45,11 @@
       {:key (:key coll)
        :count (get-in coll [:meta :numItems])}))
 
-(s/def :zotero/collection-count (s/keys :req [:zotero/key :zotero/count]))
-(s/def :zotero/key string?)
-(s/def :zotero/count int?)
+(s/def ::collection-count (s/keys :req [::key ::count]))
+(s/def ::key string?)
+(s/def ::count int?)
 
-
-(collection-count "To read")
-
-(defn get-paper [coll-key ind]
+(defn get-paper [ind coll-key]
   (let [path (str "/users/" user-id "/collections/" coll-key "/items")
         url (str base-url path)]
     (->
@@ -60,23 +57,26 @@
      :body
      (json/parse-string true)
      first
-     :data
-     pprint/pprint
-     )))
+     :data)))
 
 (s/def ::paper (s/keys :req [::data]))
-(s/def ::data (s/keys :req [::title]))
+(s/def ::data (s/keys :req [::creators ::title ::url ::key]))
+(s/def ::creators (s/coll-of ::creator))
+(s/def ::creator (s/keys :req [::creatorType ::firstName ::lastName]))
 
 (defn main
   []
   (let [coll-count (collection-count "To read")
-        coll-key (:key coll-count)]
-    (->> coll-count
-         :count
-         rand-int
-         (get-paper coll-key)
-         println)))
-
-
+        coll-key (:key coll-count)
+        creator->author (fn [creator] (str (:firstName creator) " " (:lastName creator)))
+        authorize (fn [paper] (assoc paper :authors
+                                     (->> paper :creators (map creator->author))))]
+    (-> coll-count
+        :count
+        rand-int
+        (get-paper coll-key)
+        authorize
+        (select-keys [:authors :title :url :key :publicationTitle])
+        pprint/pprint)))
 
 (when (= *file* (System/getProperty "babashka.file")) (main))
