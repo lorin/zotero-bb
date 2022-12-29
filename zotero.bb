@@ -14,11 +14,6 @@
 (def USER-ID (System/getenv "ZOTERO_USER_ID"))
 (when (nil? USER-ID) (abort-with-error "ZOTERO_USER_ID not defined"))
 
-
-(def headers {"Zotero-API-Version", 3
-              "Zotero-API-Key", API-KEY})
-(def base-url "https://api.zotero.org")
-
 (defn zotero-get
   "make a get request against the zotero api, and return the response body as a clojure map"
   ([path query-params]
@@ -37,8 +32,7 @@
   [collection-name]
   (let [path (str "/users/" USER-ID "/collections")
         name #(get-in % [:data :name])
-        colls (->
-               (zotero-get path {:headers headers}))
+        colls (zotero-get path)
         coll
         (->
          (filter #(= collection-name (name %)) colls)
