@@ -67,10 +67,12 @@
 
 (defn main
   []
-(let [coll-count (collection-count "To read")
-      coll-key (:key coll-count)
-      ind (rand-int (:count coll-count))]
-  (get-paper coll-key ind)))
+  (let [coll-count (collection-count "To read")
+        coll-key (:key coll-count)
+        ind (rand-int (:count coll-count))]
+    (->> ind
+         (get-paper coll-key)
+         println)))
 
 
 
