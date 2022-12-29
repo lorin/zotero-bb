@@ -57,14 +57,21 @@
   (assoc paper :authors
          (->> paper :creators (map creator->author))))
 
+(def collection-count-memoized (memoize collection-count))
+
+(defn collection-key
+  [name]
+  (-> name collection-count-memoized :key))
+
+
 (defn main
   []
-  (let [coll-count (collection-count "To read")
-        coll-key (:key coll-count)]
-    (-> coll-count
+  (let [collection-name "To read"]
+    (-> collection-name
+        collection-count-memoized
         :count
         rand-int
-        (get-paper coll-key)
+        (get-paper (:key (collection-count-memoized collection-name)))
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
         (yaml/generate-string :dumper-options {:flow-style :block})
