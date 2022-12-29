@@ -38,15 +38,11 @@
   [coll]
   (get-in coll [:data :name]))
 
-(defn colls-path
-  [id]
-  (str "/users/" id "/collections"))
-
 (defn collection-count
   "number of items in a collection"
   [collection-name]
   (->> USER-ID
-       colls-path
+       (#(str "/users/" % "/collections"))
        zotero-get
        (filter #(= collection-name (coll-name %)))
        first
