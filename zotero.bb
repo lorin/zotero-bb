@@ -8,22 +8,22 @@
     (println "Error:" msg))
   (System/exit 1))
 
-(def api-key (System/getenv "ZOTERO_API_KEY"))
-(when (nil? api-key) (abort-with-error "ZOTERO_API_KEY not defined"))
+(def API-KEY (System/getenv "ZOTERO_API_KEY"))
+(when (nil? API-KEY) (abort-with-error "ZOTERO_API_KEY not defined"))
 
-(def user-id (System/getenv "ZOTERO_USER_ID"))
-(when (nil? user-id) (abort-with-error "ZOTERO_USER_ID not defined"))
+(def USER-ID (System/getenv "ZOTERO_USER_ID"))
+(when (nil? USER-ID) (abort-with-error "ZOTERO_USER_ID not defined"))
 
 
 (def headers {"Zotero-API-Version", 3
-              "Zotero-API-Key", api-key})
+              "Zotero-API-Key", API-KEY})
 (def base-url "https://api.zotero.org")
 
 
 (defn collection-count
   "number of items in a collection"
   [collection-name]
-  (let [url (str base-url "/users/" user-id "/collections")
+  (let [url (str base-url "/users/" USER-ID "/collections")
         name #(get-in % [:data :name])
         colls (->
                (curl/get url {:headers headers})
@@ -37,7 +37,7 @@
      :count (get-in coll [:meta :numItems])}))
 
 (defn get-paper [ind coll-key]
-  (let [path (str "/users/" user-id "/collections/" coll-key "/items")
+  (let [path (str "/users/" USER-ID "/collections/" coll-key "/items")
         url (str base-url path)]
     (->
      (curl/get url {:headers headers, :query-params {"start" ind, "limit" 1}})
