@@ -20,12 +20,16 @@
 (def base-url "https://api.zotero.org")
 
 (defn zotero-get
+  "make a get request against the zotero api, and return the response body as a clojure map"
   ([path query-params]
    (let [base-url "https://api.zotero.org"
          headers {"Zotero-API-Version", 3
-                  "Zotero-API-Key", API-KEY}
-         url (str base-url path)]
-     (curl/get url {:headers headers, :query-params query-params})))
+                  "Zotero-API-Key", API-KEY}]
+     (-> base-url
+         (str path)
+         (curl/get {:headers headers, :query-params query-params})
+         :body
+         (json/parse-string true))))
   ([path] (zotero-get path {})))
 
 (defn collection-count
@@ -34,9 +38,7 @@
   (let [path (str "/users/" USER-ID "/collections")
         name #(get-in % [:data :name])
         colls (->
-               (zotero-get path {:headers headers})
-               :body
-               (json/parse-string true))
+               (zotero-get path {:headers headers}))
         coll
         (->
          (filter #(= collection-name (name %)) colls)
@@ -44,15 +46,15 @@
     {:key (:key coll)
      :count (get-in coll [:meta :numItems])}))
 
+(defn items-path [coll-key]
+  (str "/users/" USER-ID "/collections/" coll-key "/items"))
+
 (defn get-paper [ind coll-key]
-  (let [path (str "/users/" USER-ID "/collections/" coll-key "/items")
-        url (str base-url path)]
-    (->
-     (curl/get url {:headers headers, :query-params {"start" ind, "limit" 1}})
-     :body
-     (json/parse-string true)
-     first
-     :data)))
+    (-> coll-key
+        items-path
+        (zotero-get {"start" ind, "limit" 1})
+        first
+        :data))
 
 (defn main
   []
