@@ -67,7 +67,7 @@
         (get-paper coll-key)
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
-        ( yaml/generate-string :dumper-options {:flow-style :block})
+        (yaml/generate-string :dumper-options {:flow-style :block})
         print)))
 
 (when (= *file* (System/getProperty "babashka.file")) (main))
