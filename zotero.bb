@@ -38,7 +38,7 @@
      :count (get-in coll [:meta :numItems])}))
 
 (defn items-path [coll-key]
-  (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
+  (str "/users/" USER-ID "/collections/" coll-key "/items"))
 
 (defn get-paper [ind coll-key]
     (-> coll-key
@@ -47,13 +47,20 @@
         first
         :data))
 
+
+(defn creator->author
+  [creator]
+  (str (:firstName creator) " " (:lastName creator)))
+
+(defn authorize
+  [paper]
+  (assoc paper :authors
+         (->> paper :creators (map creator->author))))
+
 (defn main
   []
   (let [coll-count (collection-count "To read")
-        coll-key (:key coll-count)
-        creator->author (fn [creator] (str (:firstName creator) " " (:lastName creator)))
-        authorize (fn [paper] (assoc paper :authors
-                                     (->> paper :creators (map creator->author))))]
+        coll-key (:key coll-count)]
     (-> coll-count
         :count
         rand-int
