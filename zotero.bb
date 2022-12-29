@@ -40,12 +40,14 @@
 (defn items-path [coll-key]
   (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
 
-(defn get-paper [ind coll-key]
-    (-> coll-key
-        items-path
-        (zotero-get {"start" ind, "limit" 1})
-        first
-        :data))
+(defn get-paper
+  "retrieve paper info for collection `coll-key` at index `ind`"
+  [ind coll-key]
+  (-> coll-key
+      items-path
+      (zotero-get {"start" ind, "limit" 1})
+      first
+      :data))
 
 
 (defn creator->author
@@ -59,19 +61,21 @@
 
 (def collection-count-memoized (memoize collection-count))
 
-(defn collection-key
+(defn name->key
+  "given a collection name `name`, return its key"
   [name]
   (-> name collection-count-memoized :key))
 
 
 (defn main
   []
-  (let [collection-name "To read"]
+  (let [collection-name "To read"
+        collection-key (name->key collection-name)]
     (-> collection-name
         collection-count-memoized
         :count
         rand-int
-        (get-paper (:key (collection-count-memoized collection-name)))
+        (get-paper collection-key)
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
         (yaml/generate-string :dumper-options {:flow-style :block})
