@@ -4,7 +4,8 @@
                                                  :git/sha "1d9df099be4fbfd30b9b903642ad376373c16298"}}})
 (require '[clojure.spec.alpha :as s]
          '[babashka.curl :as curl]
-         '[cheshire.core :as json])
+         '[cheshire.core :as json]
+         '[clojure.pprint :as pprint])
 
 (defn abort-with-error [msg]
   (binding [*out* *err*]
@@ -60,7 +61,8 @@
      (json/parse-string true)
      first
      :data
-     :title)))
+     pprint/pprint
+     )))
 
 (s/def ::paper (s/keys :req [::data]))
 (s/def ::data (s/keys :req [::title]))
@@ -68,9 +70,10 @@
 (defn main
   []
   (let [coll-count (collection-count "To read")
-        coll-key (:key coll-count)
-        ind (rand-int (:count coll-count))]
-    (->> ind
+        coll-key (:key coll-count)]
+    (->> coll-count
+         :count
+         rand-int
          (get-paper coll-key)
          println)))
 
