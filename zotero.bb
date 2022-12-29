@@ -33,15 +33,12 @@
   (let [path (str "/users/" USER-ID "/collections")
         name #(get-in % [:data :name])
         colls (zotero-get path)
-        coll
-        (->
-         (filter #(= collection-name (name %)) colls)
-         first)]
+        coll (->> colls (filter #(= collection-name (name %))) first)]
     {:key (:key coll)
      :count (get-in coll [:meta :numItems])}))
 
 (defn items-path [coll-key]
-  (str "/users/" USER-ID "/collections/" coll-key "/items"))
+  (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
 
 (defn get-paper [ind coll-key]
     (-> coll-key
