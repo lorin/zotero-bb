@@ -19,14 +19,22 @@
               "Zotero-API-Key", API-KEY})
 (def base-url "https://api.zotero.org")
 
+(defn zotero-get
+  ([path query-params]
+   (let [base-url "https://api.zotero.org"
+         headers {"Zotero-API-Version", 3
+                  "Zotero-API-Key", API-KEY}
+         url (str base-url path)]
+     (curl/get url {:headers headers, :query-params query-params})))
+  ([path] (zotero-get path {})))
 
 (defn collection-count
   "number of items in a collection"
   [collection-name]
-  (let [url (str base-url "/users/" USER-ID "/collections")
+  (let [path (str "/users/" USER-ID "/collections")
         name #(get-in % [:data :name])
         colls (->
-               (curl/get url {:headers headers})
+               (zotero-get path {:headers headers})
                :body
                (json/parse-string true))
         coll
