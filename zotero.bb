@@ -1,6 +1,4 @@
 #!/usr/bin/env bb
-(ns zotero)
-
 (require '[babashka.deps :as deps])
 (deps/add-deps '{:deps {org.babashka/spec.alpha {:git/url "https://github.com/babashka/spec.alpha"
                                                  :git/sha "1d9df099be4fbfd30b9b903642ad376373c16298"}}})
@@ -65,7 +63,7 @@
      :title)))
 
 (s/def ::paper (s/keys :req [::data]))
-(s/def ::data (s/keys :req [:title]))
+(s/def ::data (s/keys :req [::title]))
 
 (defn main
   []
