@@ -14,6 +14,7 @@
 (s/def ::meta (s/keys :req [::numItems]))
 (s/def ::numItems int?)
 
+
 (do
   (defn collection-count
     "number of items in a collection"
@@ -30,9 +31,8 @@
       (->
        (filter #(= collection (name %)) colls)
        first
-:meta
-:numItems
-)))
+       :meta
+       :numItems)))
 
   (collection-count "To read"))
 
