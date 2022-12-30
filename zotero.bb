@@ -6,13 +6,21 @@
 (defn abort-with-error [msg]
   (binding [*out* *err*]
     (println "Error:" msg))
-  (System/exit 1))
+  #_(System/exit 1)
+  )
+
+(defn get-env
+  [var]
+  (let [value (System/getenv var)]
+    (if value
+      value
+      (abort-with-error (str "environment variable " var " not defined")))))
 
 (def API-KEY (System/getenv "ZOTERO_API_KEY"))
-;(when (nil? API-KEY) (abort-with-error "environment variable ZOTERO_API_KEY not defined"))
+(when (nil? API-KEY) (abort-with-error "environment variable ZOTERO_API_KEY not defined"))
 
 (def USER-ID (System/getenv "ZOTERO_USER_ID"))
-;(when (nil? USER-ID) (abort-with-error "environment variable ZOTERO_USER_ID not defined"))
+(when (nil? USER-ID) (abort-with-error "environment variable ZOTERO_USER_ID not defined"))
 
 (defn zotero-get
   "make a get request against the zotero api, and return the response body as a clojure map"
