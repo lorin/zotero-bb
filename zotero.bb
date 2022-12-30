@@ -45,7 +45,7 @@
   (get-in coll [:data :name]))
 
 (defn collection-count
-  "number of items in a collection"
+  "number of items in a named Zotero collection"
   [collection-name]
   (->> USER-ID
        (#(str "/users/" % "/collections"))
@@ -57,10 +57,18 @@
 (defn items-path [coll-key]
   (str "/users/" USER-ID "/collections/" coll-key "/items/top"))
 
+(def collection-count-memoized (memoize collection-count))
+
+(defn name->key
+  "given a collection name `name`, return its key"
+  [name]
+  (-> name collection-count-memoized :key))
+
 (defn get-paper
-  "retrieve paper info for collection `coll-key` at index `ind`"
-  [ind coll-key]
-  (-> coll-key
+  "retrieve paper info for collection named `name` at index `ind`"
+  [ind name]
+  (-> name
+      name->key
       items-path
       (zotero-get {"start" ind, "limit" 1})
       first
@@ -75,12 +83,7 @@
   (assoc paper :authors
          (->> paper :creators (map creator->author))))
 
-(def collection-count-memoized (memoize collection-count))
 
-(defn name->key
-  "given a collection name `name`, return its key"
-  [name]
-  (-> name collection-count-memoized :key))
 
 
 (defn main
@@ -90,7 +93,7 @@
         collection-count-memoized
         :count
         rand-int
-        (get-paper (name->key collection-name))
+        (get-paper collection-name)
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
         (yaml/generate-string :dumper-options {:flow-style :block})
