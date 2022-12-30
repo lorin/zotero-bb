@@ -11,7 +11,8 @@
 (defn get-env
   [var]
   (let [value (System/getenv var)]
-    (when-not value (abort-with-error (str "environment variable " var " not defined")))
+    (when-not value
+      (abort-with-error (str "environment variable " var " not defined")))
     value))
 
 (def API-KEY (get-env "ZOTERO_API_KEY"))
@@ -33,10 +34,11 @@
          (json/parse-string true)))))
 
 (defn coll->count
-  "given a collection, return a map with its key and count"
+  "given a Zotero collection map, return a map with the colleciton key and count"
   [coll]
-  {:key (:key coll)
-   :count (get-in coll [:meta :numItems])})
+  (let [{:keys [key meta]} coll]
+    {:key key
+     :count (:numItems meta)}))
 
 (defn coll-name
   [coll]
