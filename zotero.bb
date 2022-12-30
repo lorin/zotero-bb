@@ -35,10 +35,9 @@
 
 (defn coll->count
   "given a Zotero collection map, return a map with the colleciton key and count"
-  [coll]
-  (let [{:keys [key meta]} coll]
+  [{:keys [key meta]}]
     {:key key
-     :count (:numItems meta)}))
+     :count (:numItems meta)})
 
 (defn coll-name
   [coll]
