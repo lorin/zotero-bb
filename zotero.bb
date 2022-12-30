@@ -86,16 +86,15 @@
 
 
 (defn main
-  []
-  (let [collection-name "To read"]
-    (-> collection-name
-        collection-count-memoized
-        :count
-        rand-int
-        (get-paper collection-name)
-        authorize
-        (select-keys [:authors :title :url :key :publicationTitle])
-        (yaml/generate-string :dumper-options {:flow-style :block})
-        print)))
+  [collection-name]
+  (-> collection-name
+      collection-count-memoized
+      :count
+      rand-int
+      (get-paper collection-name)
+      authorize
+      (select-keys [:authors :title :url :key :publicationTitle])
+      (yaml/generate-string :dumper-options {:flow-style :block})
+      print))
 
-(when (= *file* (System/getProperty "babashka.file")) (main))
+(when (= *file* (System/getProperty "babashka.file")) (main "To read"))
