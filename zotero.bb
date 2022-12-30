@@ -35,9 +35,10 @@
 
 (defn coll->count
   "given a Zotero collection map, return a map with the colleciton key and count"
-  [{:keys [key meta]}]
-    {:key key
-     :count (:numItems meta)})
+  [{:keys [key]
+    {:keys [numItems]} :meta}]
+  {:key key,
+   :count numItems})
 
 (defn coll-name
   [coll]
@@ -66,9 +67,8 @@
       :data))
 
 (defn creator->author
-  "take a map that "
-  [creator]
-  (str (:firstName creator) " " (:lastName creator)))
+  [{:keys [firstName lastName]}]
+  (str firstName " " lastName))
 
 (defn authorize
   [paper]
@@ -85,13 +85,12 @@
 
 (defn main
   []
-  (let [collection-name "To read"
-        collection-key (name->key collection-name)]
+  (let [collection-name "To read"]
     (-> collection-name
         collection-count-memoized
         :count
         rand-int
-        (get-paper collection-key)
+        (get-paper (name->key collection-name))
         authorize
         (select-keys [:authors :title :url :key :publicationTitle])
         (yaml/generate-string :dumper-options {:flow-style :block})
