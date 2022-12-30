@@ -67,12 +67,13 @@
 (defn get-paper
   "retrieve paper info for collection named `name` at index `ind`"
   [ind name]
-  (-> name
-      name->key
-      items-path
-      (zotero-get {"start" ind, "limit" 1})
-      first
-      :data))
+  (let [query-params {:start ind, :limit 1}]
+    (-> name
+        name->key
+        items-path
+        (zotero-get query-params)
+        first
+        :data)))
 
 (defn creator->author
   [{:keys [firstName lastName]}]
@@ -82,8 +83,6 @@
   [paper]
   (assoc paper :authors
          (->> paper :creators (map creator->author))))
-
-
 
 
 (defn main
