@@ -1,7 +1,8 @@
 #!/usr/bin/env bb
-(require '[babashka.curl :as curl]
-         '[cheshire.core :as json]
-         '[clj-yaml.core :as yaml])
+(ns zotero
+  (:require [babashka.curl :as curl]
+            [cheshire.core :as json]
+            [clj-yaml.core :as yaml]))
 
 (defn abort-with-error [msg]
   (binding [*out* *err*]
