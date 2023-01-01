@@ -1,2 +1,2 @@
 run:
-	./zotero.bb
+	./zotero.clj
