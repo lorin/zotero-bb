@@ -94,7 +94,7 @@
       rand-int
       (get-paper collection-name)
       authorize
-      (select-keys [:authors :title :url :key :publicationTitle])
+      (select-keys [:title :publicationTitle :authors :url :key])
       (yaml/generate-string :dumper-options {:flow-style :block})
       print))
 
