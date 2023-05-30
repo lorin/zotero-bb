@@ -35,7 +35,7 @@
          (json/parse-string true)))))
 
 (defn coll->count
-  "given a Zotero collection map, return a map with the colleciton key and count"
+  "given a Zotero collection map, return a map with the collection key and count"
   [{:keys [key]
     {:keys [numItems]} :meta}]
   {:key key,
