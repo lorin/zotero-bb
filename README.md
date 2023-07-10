@@ -10,3 +10,8 @@ ZOTERO_USER_ID
 ```
 
 The user id is a numerical id, not your Zotero login name.
+
+You can find your user id and create an api key at <https://www.zotero.org/settings/keys>.
+
+I set these in my ~/.localrc file
+
